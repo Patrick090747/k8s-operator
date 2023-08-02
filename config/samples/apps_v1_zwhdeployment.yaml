@@ -1,0 +1,12 @@
+apiVersion: apps.zwh.com/v1
+kind: ZwhDeployment
+metadata:
+  labels:
+    app.kubernetes.io/name: zwhdeployment
+    app.kubernetes.io/instance: zwhdeployment-sample
+    app.kubernetes.io/part-of: zwh-deployment
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: zwh-deployment
+  name: zwhdeployment-sample
+spec:
+  # TODO(user): Add fields here

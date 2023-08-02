@@ -1,0 +1,27 @@
+# permissions for end users to view zwhdeployments.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: zwhdeployment-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: zwh-deployment
+    app.kubernetes.io/part-of: zwh-deployment
+    app.kubernetes.io/managed-by: kustomize
+  name: zwhdeployment-viewer-role
+rules:
+- apiGroups:
+  - apps.zwh.com
+  resources:
+  - zwhdeployments
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps.zwh.com
+  resources:
+  - zwhdeployments/status
+  verbs:
+  - get
