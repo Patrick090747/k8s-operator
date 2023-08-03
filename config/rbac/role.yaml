@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+  - apiGroups:
+      - apps.zwh.com
+    resources:
+      - zwhdeployments
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps.zwh.com
+    resources:
+      - zwhdeployments/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - apps.zwh.com
+    resources:
+      - zwhdeployments/status
+    verbs:
+      - get
+      - patch
+      - update
