@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zwhdeployment-test
+  labels:
+    app: zwhdeployment-test
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zwhdeployment-test
+  template:
+    metadata:
+      labels:
+        app: zwhdeployment-test
+    spec:
+      containers:
+        - name: zwhdeployment-test   #k8s项目的types.go里面的Objectmeta结构体
+          image: nginx  #模板引擎，spec就是zwhdeployment_types.go
+          ports:
+              - containerPort: 80

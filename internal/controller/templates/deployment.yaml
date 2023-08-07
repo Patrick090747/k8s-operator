@@ -1,11 +1,12 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apps.zwh.com/v1
+kind: ZwhDeployment
 metadata:
   name: {{ .ObjectMeta.Name}}
+  namespace: {{ .ObjectMeta.Namespace}}
   labels:
     app: {{ .ObjectMeta.Name}}
 spec:
-  replicas: {{ .ObjectMeta.Spec.Replicas}}
+  replicas: {{ .Spec.Replicas}}
   selector:
     matchLabels:
       app: {{ .ObjectMeta.Name}}
@@ -15,7 +16,7 @@ spec:
         app: {{ .ObjectMeta.Name}}
     spec:
       containers:
-        - name: {{ .ObjectMeta.Name}}   //k8s项目的types.go里面的Objectmeta结构体
-          image: {{ .Spec.Image}}  //模板引擎，spec就是zwhdeployment_types.go
+        - name: {{ .ObjectMeta.Name}}   #k8s项目的types.go里面的Objectmeta结构体
+          image: {{ .Spec.Image}}  #模板引擎，spec就是zwhdeployment_types.go
           ports:
-              - containerPort: {{ .Spec.Port}}
+            - containerPort: {{ .Spec.Port}}

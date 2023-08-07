@@ -1,0 +1,11 @@
+apiVersion: apps.zwh.com/v1
+kind: ZwhDeployment
+metadata:
+  name: zwhdeployment-ingress
+spec:
+  image: nginx
+  port: 80
+  replicas: 2
+  expose:
+    mode: ingress
+    ingressDomain: www.zhangwenhao-test.com

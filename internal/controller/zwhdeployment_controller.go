@@ -72,7 +72,9 @@ func (r *ZwhDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if errors.IsNotFound(err) {
 			//2.1不存在对象
 			//2.1.1创建deployment
-			r.createDeployment(mdCopy)
+			if err := r.createDeployment(ctx, mdCopy); err != nil {
+				return ctrl.Result{}, err
+			}
 
 		} else {
 
@@ -81,7 +83,10 @@ func (r *ZwhDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	} else {
 		//2.2存在对象
 		//2.2.1更新deployment对象
-		r.updateDeployment(mdCopy)
+		err := r.updateDeployment(ctx, mdCopy)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	//========处理service=========
@@ -94,11 +99,17 @@ func (r *ZwhDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 			if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeIngress {
 				//3.1.1.1创建普通service
-				r.createService(mdCopy)
+				err := r.createService(ctx, mdCopy)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
 			} else if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeNodePort {
 				//3.1.2mode为nodeport
 				//3.1.2.1创建nodeport模式的service
-				r.createNPService(mdCopy)
+				err := r.createNPService(ctx, mdCopy)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
 			} else {
 				return ctrl.Result{}, myAppsv1.ErrorNotSupportMode
 			}
@@ -111,11 +122,17 @@ func (r *ZwhDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeIngress {
 			//3.2.1mode为ingress
 			//3.2.1.1更新普通service
-			r.updateService(mdCopy)
+			err := r.updateService(ctx, mdCopy)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 		} else if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeNodePort {
 			//3.2.2mode为nodeport
 			//3.2.2.1更新nodeport模式的service
-			r.updateNPSerive(mdCopy)
+			err := r.updateNPSerive(ctx, mdCopy)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 
 		} else {
 			return ctrl.Result{}, myAppsv1.ErrorNotSupportMode
@@ -133,7 +150,10 @@ func (r *ZwhDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeIngress {
 				//4.1.1mode为ingress
 				//4.1.1.1创建ingress
-				r.createIngress(mdCopy)
+				err := r.createIngress(ctx, mdCopy)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
 			} else if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeNodePort {
 				//4.1.2mode为nodeport
 				//4.1.2.1退出
@@ -149,11 +169,17 @@ func (r *ZwhDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeIngress {
 			//4.2.1mode为ingress
 			//4.2.1.1更新ingress
-			r.updateIngress(mdCopy)
+			err := r.updateIngress(ctx, mdCopy)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 		} else if strings.ToLower(mdCopy.Spec.Expose.Mode) == myAppsv1.ModeNodePort {
 			//4.2.2mode为nodeport
 			//4.2.2.1删除ingress
-			r.deleteIngress(mdCopy)
+			err := r.deleteIngress(ctx, mdCopy)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
 		}
 
 	}
@@ -169,38 +195,77 @@ func (r *ZwhDeploymentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ZwhDeploymentReconciler) createDeployment(_ *myAppsv1.ZwhDeployment) {
+func (r *ZwhDeploymentReconciler) createDeployment(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	deploy, err := NewDeployment(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Create(ctx, deploy)
 
 }
 
-func (r *ZwhDeploymentReconciler) updateDeployment(_ *myAppsv1.ZwhDeployment) {
+func (r *ZwhDeploymentReconciler) updateDeployment(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	deploy, err := NewDeployment(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Update(ctx, deploy)
 
 }
 
-func (r *ZwhDeploymentReconciler) createService(_ *myAppsv1.ZwhDeployment) {
+func (r *ZwhDeploymentReconciler) createService(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	svc, err := NewService(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Create(ctx, svc)
+}
+
+func (r *ZwhDeploymentReconciler) createNPService(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	svc, err := NewServiceNP(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Create(ctx, svc)
+}
+
+func (r *ZwhDeploymentReconciler) updateService(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	svc, err := NewService(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Update(ctx, svc)
 
 }
 
-func (r *ZwhDeploymentReconciler) createNPService(_ *myAppsv1.ZwhDeployment) {
-
+func (r *ZwhDeploymentReconciler) updateNPSerive(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	svc, err := NewServiceNP(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Update(ctx, svc)
 }
 
-func (r *ZwhDeploymentReconciler) updateService(_ *myAppsv1.ZwhDeployment) {
-
+func (r *ZwhDeploymentReconciler) createIngress(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	ig, err := NewIngress(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Create(ctx, ig)
 }
 
-func (r *ZwhDeploymentReconciler) updateNPSerive(_ *myAppsv1.ZwhDeployment) {
-
+func (r *ZwhDeploymentReconciler) updateIngress(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	ig, err := NewIngress(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Update(ctx, ig)
 }
 
-func (r *ZwhDeploymentReconciler) createIngress(_ *myAppsv1.ZwhDeployment) {
-
-}
-
-func (r *ZwhDeploymentReconciler) updateIngress(_ *myAppsv1.ZwhDeployment) {
-
-}
-
-func (r *ZwhDeploymentReconciler) deleteIngress(_ *myAppsv1.ZwhDeployment) {
-
+func (r *ZwhDeploymentReconciler) deleteIngress(ctx context.Context, md *myAppsv1.ZwhDeployment) error {
+	ig, err := NewIngress(md)
+	if err != nil {
+		return err
+	}
+	return r.Client.Delete(ctx, ig)
 }

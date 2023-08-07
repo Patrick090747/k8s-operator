@@ -1,0 +1,11 @@
+apiVersion: apps.zwh.com/v1
+kind: ZwhDeployment
+metadata:
+  name: zwhdeployment-nodeport
+spec:
+  image: nginx
+  port: 80
+  replicas: 2
+  expose:
+    mode: nodeport
+    nodePort: 80
